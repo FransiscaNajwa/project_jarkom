@@ -3,9 +3,15 @@ import pandas as pd
 import numpy as np
 import re
 from datetime import datetime, time
+import mqtt_handler  # pastikan file mqtt_handler.py ada di folder yang sama
 
 # =======================
-# SIMULASI DATA SENSOR
+# INISIALISASI MQTT (sekali di awal)
+# =======================
+mqtt_handler.setup_mqtt()
+
+# =======================
+# SIMULASI DATA SENSOR (dummy)
 # =======================
 waktu = pd.date_range(end=datetime.now(), periods=24, freq='H')
 daya = np.random.randint(50, 200, size=24)
@@ -29,9 +35,10 @@ status = {
 }
 
 # =======================
-# TAMPILAN UTAMA
+# DASHBOARD UTAMA
 # =======================
-st.title("💡 Desain Sistem Rumah Pintar IoT Berbasis MQTT untuk Manajemen Energi ")
+st.set_page_config(layout="wide")
+st.title("💡 Sistem Rumah Pintar IoT Berbasis MQTT untuk Manajemen Energi")
 st.markdown("---")
 
 col1, col2 = st.columns(2)
@@ -42,23 +49,44 @@ st.markdown("### 📈 Konsumsi Daya (24 jam terakhir)")
 st.line_chart(df.set_index("Waktu")[["Daya (W)"]])
 
 # =======================
-# STATUS PERANGKAT
+# STATUS SENSOR & PERANGKAT
 # =======================
-st.markdown("### 💡 Status Perangkat")
+st.markdown("### 💡 Status Perangkat & Sensor")
 col3, col4 = st.columns(2)
 col3.success(f"Lampu: {status['lampu']}")
 col4.info(f"Kipas: {status['kipas']}")
-
-st.caption(f"Lux: {status['lux']} lx | Suhu: {status['temp']}°C")
+st.caption(f"🔆 Lux: {status['lux']} lx | 🌡️ Suhu: {status['temp']}°C")
 
 # =======================
 # TIMER OTOMATIS
 # =======================
-st.sidebar.header("⏰ Atur Timer Otomatis")
+st.sidebar.header("⏰ Timer")
 timer_lampu = st.sidebar.time_input("Waktu matikan lampu", time(21, 0))
 timer_kipas = st.sidebar.time_input("Waktu matikan kipas", time(22, 0))
-st.sidebar.success(f"Lampu akan mati pukul: {timer_lampu}")
-st.sidebar.success(f"Kipas akan mati pukul: {timer_kipas}")
+st.sidebar.success(f"Lampu dijadwalkan mati pukul: {timer_lampu}")
+st.sidebar.success(f"Kipas dijadwalkan mati pukul: {timer_kipas}")
+
+# =======================
+# KONTROL MANUAL
+# =======================
+st.markdown("### 🎛️ Kontrol Manual Perangkat")
+
+col5, col6 = st.columns(2)
+with col5:
+    if st.button("🔌 Nyalakan Lampu"):
+        mqtt_handler.publish_command("rumah/lampu/control", "ON")
+        st.success("Lampu dinyalakan.")
+    if st.button("❌ Matikan Lampu"):
+        mqtt_handler.publish_command("rumah/lampu/control", "OFF")
+        st.warning("Lampu dimatikan.")
+
+with col6:
+    if st.button("🌬️ Nyalakan Kipas"):
+        mqtt_handler.publish_command("rumah/kipas/control", "ON")
+        st.success("Kipas dinyalakan.")
+    if st.button("❌ Matikan Kipas"):
+        mqtt_handler.publish_command("rumah/kipas/control", "OFF")
+        st.warning("Kipas dimatikan.")
 
 # =======================
 # CHATBOT IoT CONTROL
@@ -68,34 +96,36 @@ user_input = st.text_input("Ketik perintah Anda:")
 
 if user_input:
     if re.search(r"mati.*lampu", user_input, re.IGNORECASE):
-        st.success("✅ Perintah diterima: Mematikan lampu...")
-        # mqtt.publish("rumah/lampu/control", "OFF")
+        mqtt_handler.publish_command("rumah/lampu/control", "OFF")
+        st.success("✅ Mematikan lampu...")
     elif re.search(r"hidup.*kipas", user_input, re.IGNORECASE):
-        st.success("✅ Perintah diterima: Menyalakan kipas...")
-        # mqtt.publish("rumah/kipas/control", "ON")
+        mqtt_handler.publish_command("rumah/kipas/control", "ON")
+        st.success("✅ Menyalakan kipas...")
     elif "suhu" in user_input:
         st.info(f"🌡️ Suhu saat ini: {status['temp']}°C")
     elif "status" in user_input:
-        st.info(f"💡 Lampu: {status['lampu']}, 🌬️ Kipas: {status['kipas']}")
+        st.info(f"Lampu: {status['lampu']}, Kipas: {status['kipas']}")
     else:
-        st.warning("⚠️ Maaf, perintah tidak dikenali.")
+        st.warning("⚠️ Perintah tidak dikenali.")
 
 # =======================
-# DATA DETAIL (Expandable)
+# TAMPILKAN DATA DETAIL
 # =======================
-with st.expander("📊 Lihat Data Konsumsi "):
+with st.expander("📊 Lihat Data Konsumsi"):
     st.dataframe(df)
 
 # =======================
-# NOTIFIKASI KONSUMSI TINGGI
+# NOTIFIKASI KONSUMSI BERLEBIHAN
 # =======================
 threshold = 180
 terlampaui = df[df["Daya (W)"] > threshold]
 if not terlampaui.empty:
-    st.warning(f"⚠️ Terdapat {len(terlampaui)} jam dengan konsumsi > {threshold}W")
+    st.warning(f"⚠️ {len(terlampaui)} jam dengan konsumsi > {threshold}W")
 else:
     st.success("✅ Konsumsi daya aman sepanjang hari.")
 
+# =======================
+# FOOTER
+# =======================
 st.markdown("---")
-st.caption("📡 Kelompok 4 – Smart Home IoT – Teknik Komputer A")
- 
+st.caption("📡 Kelompok 4 – Teknik Komputer A – Sistem Rumah Pintar IoT")
