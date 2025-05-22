@@ -31,8 +31,7 @@ status = {
 # =======================
 # TAMPILAN UTAMA
 # =======================
-st.title("💡 Dashboard Manajemen Energi Rumah Pintar")
-st.subheader("Pemantauan Konsumsi Daya Listrik & Kendali Perangkat IoT")
+st.title("💡 Desain Sistem Rumah Pintar IoT Berbasis MQTT untuk Manajemen Energi ")
 st.markdown("---")
 
 col1, col2 = st.columns(2)
@@ -64,7 +63,7 @@ st.sidebar.success(f"Kipas akan mati pukul: {timer_kipas}")
 # =======================
 # CHATBOT IoT CONTROL
 # =======================
-st.markdown("### 🤖 Chatbot Kendali IoT")
+st.markdown("### 🤖 Chatbot")
 user_input = st.text_input("Ketik perintah Anda:")
 
 if user_input:
@@ -84,7 +83,7 @@ if user_input:
 # =======================
 # DATA DETAIL (Expandable)
 # =======================
-with st.expander("📊 Lihat Data Konsumsi Lengkap"):
+with st.expander("📊 Lihat Data Konsumsi "):
     st.dataframe(df)
 
 # =======================
@@ -98,4 +97,5 @@ else:
     st.success("✅ Konsumsi daya aman sepanjang hari.")
 
 st.markdown("---")
-st.caption("📡 Kelompok 4 – Sistem Rumah Pintar IoT – Teknik Komputer")
+st.caption("📡 Kelompok 4 – Smart Home IoT – Teknik Komputer A")
+ 
