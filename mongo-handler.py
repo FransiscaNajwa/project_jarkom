@@ -4,11 +4,11 @@ from datetime import datetime
 # ================================
 # KONEKSI MONGODB (sesuaikan URI)
 # ================================
-client = MongoClient("mongodb+srv://<USERNAME>:<PASSWORD>@<CLUSTER>.mongodb.net/?retryWrites=true&w=majority")
+client = MongoClient("mongodb+srv://kel4iot:kel4jarkomiot@kelompok4.wjbawdf.mongodb.net/?retryWrites=true&w=majority&appName=kelompok4")
 
 # Ganti nama database dan koleksi sesuai proyekmu
-db = client["iot_db"]
-collection = db["energi_data"]
+db = client["smart_home"]
+collection = db["sensor_data"]
 
 # ================================
 # Simpan data ke MongoDB
